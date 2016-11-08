@@ -3,6 +3,23 @@ if exists("g:loaded_vimux") || &cp
 endif
 let g:loaded_vimux = 1
 
+
+if !has('python') && !has('python3')
+  echo 'tern requires python support'
+  finish
+endif
+
+let s:plug = expand("<sfile>:p:h:h")
+let s:script = s:plug . '/script/tern.py'
+if has('python3')
+  execute 'py3file ' . fnameescape(s:script)
+elseif has('python')
+  execute 'pyfile ' . fnameescape(s:script)
+endif
+
+
+
+
 command -nargs=* VimuxRunCommand :call VimuxRunCommand(<args>)
 command VimuxRunLastCommand :call VimuxRunLastCommand()
 command VimuxCloseRunner :call VimuxCloseRunner()
@@ -74,6 +91,7 @@ function! VimuxOpenRunner()
       let height = _VimuxOption("g:VimuxHeight", 20)
       let orientation = _VimuxOption("g:VimuxOrientation", "v")
       call _VimuxTmux("split-window -p ".height." -".orientation)
+      " TODO: add hook to listen for new splits
     elseif _VimuxRunnerType() == "window"
       call _VimuxTmux("new-window")
     endif
@@ -201,3 +219,5 @@ endfunction
 function! _VimuxHasRunner(index)
   return match(_VimuxTmux("list-"._VimuxRunnerType()."s -a"), a:index.":")
 endfunction
+
+call _VimuxTmux("set-hook before-split-window \"display-message 'Goingo to split the window'\"")
